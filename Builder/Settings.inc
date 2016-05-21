@@ -1,5 +1,0 @@
-#define MAX_EDITING_OBJECT			(500)
-#define MAX_OBJECT_MATERIAL_SLOT	(10)
-#define MAX_EDITING_VEHICLE			(200)
-#define MAX_EDITING_PICKUP 			(300)
-#define MAX_EDITING_ICON        	(100)

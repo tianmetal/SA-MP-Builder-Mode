@@ -1,3 +1,16 @@
+SSCANF:importmenu(string[])
+{
+	if(!strcmp(string,"samp",true))				return 1;
+	else if(!strcmp(string,"mta",true))			return 2;
+	return 0;
+}
+SSCANF:exportmenu(string[])
+{
+	if(!strcmp(string,"samp",true))				return 1;
+	else if(!strcmp(string,"streamer",true))	return 2;
+	return 0;
+}
+
 CMD:help(playerid,params[])
 {
 	SendClientMessage(playerid,X11_LIGHTBLUE,"COMMAND LIST:");
@@ -282,7 +295,7 @@ CMD:teleport(playerid,params[])
     format(string,sizeof(string),"%s\nVice Stadium\nBurglary House X18\nBurglary House X19\nZero's RC Shop\nAmmu-nation (version 4)\nAmmu-nation (version 5)\nBurglary House X20\n24/7 (version 6)\nSecret Valley Diner\nRosenberg's Office in Caligulas\nFanny Batter's ",string);
     format(string,sizeof(string),"%sWhore House\nColonel Furhberger's\nCluckin' Bell\nThe Camel's Toe Safehouse\nCaligula's Roof\nOld Venturas Strip Casino\nDriving School\nVerdant Bluffs Safehouse\nBike School\nAndromada\nFour ",string);
     format(string,sizeof(string),"%sDragons' Janitor's Office\nBar\nBurglary House X21\nWillowfield Safehouse\nBurglary House X22\nBurglary House X23\nOtto's Autos\nWang Cars",string);
-    ShowPlayerDialog(playerid,DIALOG_TELEPORT,DIALOG_STYLE_LIST,"Interiors",string,"Teleport","Close");
+    Dialog_Show(playerid,Util_TeleportOption,DIALOG_STYLE_LIST,"Interiors",string,"Teleport","Close");
     return 1;
 }
 CMD:weapon(playerid,params[])

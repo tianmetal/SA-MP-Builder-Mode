@@ -1,14 +1,23 @@
+#define SEM(%0,%1) SendClientMessage(%0,X11_GRAY,%1) 					// SEM = Send Error Message by 	Myself
+#define Loop(%0,%1) for(new %0 = 0; %0 < %1; %0++)                      // Loop                     by 	Myself
+#define IsNull(%1) ((!(%1[0])) || (((%1[0]) == '\1') && (!(%1[1]))))    // IsNull macro 			by 	Y_Less
+#define strToLower(%0) \
+    for(new i; %0[i] != EOS; ++i) \
+        %0[i] = ('A' <= %0[i] <= 'Z') ? (%0[i] += 'a' - 'A') : (%0[i])  // strToLower 				by 	RyDeR`
+#define RGBAToInt(%0,%1,%2,%3) \
+	((16777216 * (%0)) + (65536 * (%1)) + (256 * (%2)) + (%3))          // RGBAToInt 				by 	RyDeR`
+
 new bool:GMX;
 new bool:GodMode[MAX_PLAYERS];
 
 enum E_TELEPORT_LIST
 {
-	InteriorID,
+	Interior,
 	Float:Pos_X,
 	Float:Pos_Y,
-	Float:pos_z
+	Float:Pos_Z
 }
-static const TeleportList[][E_TELEPORT_LIST] = {
+new const TeleportList[][E_TELEPORT_LIST] = {
 {11,2003.117797,1015.194824,33.007999},	{5,770.803283,-0.703299,1000.726684},	{3,974.017700,-9.593700,1001.148376},
 {3,961.930786,-51.907100,1001.117187},	{3,830.601623,5.940400,1004.179687},	{3,1037.827636,0.397000,1001.284484},
 {3,1212.148925,-28.538799,1000.953125},	{18,1290.410644,1.951200,1001.020080},	{1,1412.147216,-2.283600,1000.924072},

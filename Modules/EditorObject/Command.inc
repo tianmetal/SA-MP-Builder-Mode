@@ -287,7 +287,7 @@ CMD:object(playerid,params[])
 	        if(Iter_Count(DynamicObjects) == 0) return SEM(playerid,"<ERROR> : There are no objects!");
 	        new mode,filename[32],world,interior,Float:distance;
 	        if(sscanf(subparam,"k<exportmenu>s[32]D(-1)D(-1)F(300.0)",mode,filename,world,interior,distance)) return SEM(playerid,"<SYNTAX> : /object export [mode (samp,streamer)] [map name] [opt:world] [opt:interior] [opt:distance]");
-			if(!strcmp(mode,"samp",true))
+			if(mode == 1)
 			{
 			    new dir[64];
 			    format(dir,sizeof(dir),"output/objects/%s.pwn",filename);
@@ -305,7 +305,7 @@ CMD:object(playerid,params[])
 				format(string,144,"<OBJECT> : "YELLOW"%d objects "WHITE"have been exported to '"GREEN"%s"WHITE"'",Iter_Count(DynamicObjects),dir);
 				SendClientMessage(playerid,X11_LIGHTBLUE,string);
 			}
-			else if(!strcmp(mode,"streamer",true))
+			else if(mode == 2)
 			{
 			    new dir[64];
 			    format(dir,sizeof(dir),"output/objects/%s.pwn",filename);
@@ -328,7 +328,7 @@ CMD:object(playerid,params[])
 	    case 13:
 	    {
 	    	new slot,index,modelid,txdname[32],texturename[32],color;
-	    	if(sscanf(subparam,"ddds[32]s[32]D(0)",slot,index,modelid,txdname,texturename,color)) return SEM(playerid,"<SYNTAX> : /object material [object slot] [index] [modelid] [txd name] [texture name] [color]")
+	    	if(sscanf(subparam,"ddds[32]s[32]D(0)",slot,index,modelid,txdname,texturename,color)) return SEM(playerid,"<SYNTAX> : /object material [object slot] [index] [modelid] [txd name] [texture name] [color]");
 	    	if(index < 0 || index > MAX_OBJECT_MATERIAL_SLOT) return SEM(playerid,"<ERROR> : Material index cannot go below 0 or above "#MAX_OBJECT_MATERIAL_SLOT"!");
 	    	if(Iter_Contains(DynamicObjects,slot))
 			{
@@ -340,6 +340,24 @@ CMD:object(playerid,params[])
 	    case 14:
 	    {
 	    	new slot,index;
+	    	if(sscanf(subparam,"dD(0)",slot,index)) return SEM(playerid,"<SYNTAX> : /object settext [object slot] [index]");
+	    	if(index < 0 || index > MAX_OBJECT_MATERIAL_SLOT) return SEM(playerid,"<ERROR> : Material index cannot go below 0 or above "#MAX_OBJECT_MATERIAL_SLOT"!");
+	    	if(Iter_Contains(DynamicObjects,slot))
+			{
+				if(ObjectMaterial[slot][index] != MATERIAL_TYPE_MESSAGE)
+				{
+					ObjectMaterial[slot][index] = MATERIAL_TYPE_MESSAGE;
+	    			SetDynamicObjectMaterialText(DynamicObject[slot],index,"Text");
+				}
+	    		SetPVarInt(playerid,"EditingObject",slot);
+	    		SetPVarInt(playerid,"EditingIndex",index);
+	    		Dialog_Show(playerid,Object_TextMenu,DIALOG_STYLE_LIST,"Material Text","Text\nResolution\nFont\nFont Size\nToggle Bold\nFont Color\nBackground Color\nText Alignment\nReset","Select","Close");
+	    	}
+	    	else SEM(playerid,"ERROR: Invalid object slot id");
+	    }
+	    case 15:
+	    {
+	    	
 	    }
 	    default:
 	    {
