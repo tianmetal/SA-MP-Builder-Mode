@@ -26,18 +26,73 @@ public OnPlayerSelectDynamicObject(playerid, objectid, modelid, Float:x, Float:y
 	{
 	    if(DynamicObject[slot] == objectid)
 	    {
-	        if((ObjectEditor[slot] != INVALID_PLAYER_ID) && (GetPVarInt(ObjectEditor[slot],"EditingObject") == slot))
-	        {
-	            new playername[MAX_PLAYER_NAME];
-	            GetPlayerName(ObjectEditor[slot],playername,sizeof(playername));
-			    format(string,sizeof(string),"<ERROR> : "RED"%s "GRAY"is currently editing this object!",playername);
-				return SEM(playerid,string);
-	        }
-	        format(string,sizeof(string),"<OBJECT> : "WHITE"Selected object with "YELLOW"id %d",slot);
-			ObjectEditor[slot] = playerid;
-	        SetPVarInt(playerid,"EditingObject",slot);
-	    	EditDynamicObject(playerid,objectid);
-	    	SendClientMessage(playerid,X11_LIGHTBLUE,string);
+	    	if(SelectObjectType[playerid] == OBJECT_SELECT_EDITOR)
+	    	{
+	    		if((ObjectEditor[slot] != INVALID_PLAYER_ID) && (GetPVarInt(ObjectEditor[slot],"EditingObject") == slot))
+		        {
+		            new playername[MAX_PLAYER_NAME];
+		            GetPlayerName(ObjectEditor[slot],playername,sizeof(playername));
+				    format(string,sizeof(string),"<ERROR> : "RED"%s "GRAY"is currently editing this object!",playername);
+					return SEM(playerid,string);
+		        }
+		        format(string,sizeof(string),"<OBJECT> : "WHITE"Selected object with "YELLOW"id %d",slot);
+				ObjectEditor[slot] = playerid;
+		        SetPVarInt(playerid,"EditingObject",slot);
+		    	EditDynamicObject(playerid,objectid);
+		    	SendClientMessage(playerid,X11_LIGHTBLUE,string);
+	    	}
+	    	else if(SelectObjectType[playerid] == OBJECT_SELECT_DELETE)
+	    	{
+	    		new next;
+		        if(ObjectEditor[slot] != INVALID_PLAYER_ID)
+                {
+                    new editor = ObjectEditor[slot];
+					if(GetPVarInt(editor,"EditingObject") == slot)
+					{
+						new playername[MAX_PLAYER_NAME];
+			            GetPlayerName(ObjectEditor[slot],playername,sizeof(playername));
+					    format(string,sizeof(string),"<ERROR> : "RED"%s "GRAY"is currently editing this object!",playername);
+						return SEM(playerid,string);
+					}
+                }
+                DestroyDynamicObject(DynamicObject[slot]);
+				Loop(i,MAX_OBJECT_MATERIAL_SLOT)
+				{
+					DynamicObjectMaterial[slot][i] = MATERIAL_TYPE_NONE;
+				}
+				Iter_SafeRemove(DynamicObjects,slot,next);
+                format(string,sizeof(string),"<OBJECT> : Object with ID %d has been deleted, total object: %d",slot,Iter_Count(DynamicObjects));
+                slot = next;
+                SendClientMessage(playerid,X11_YELLOW,string);
+	    	}
+	    	else if(SelectObjectType[playerid] == OBJECT_SELECT_PAINT)
+	    	{
+	    		new index,model,txdname[32],texture[32],color;
+		        GetPVarString(playerid,"PaintParam",string,sizeof(string));
+		        unformat(string,"p<|>dds[32]s[32]d",index,model,txdname,texture,color);
+		        SetDynamicObjectMaterial(DynamicObject[slot],index,model,txdname,texture,color);
+				DynamicObjectMaterial[slot][index] = MATERIAL_TYPE_TEXTURE;
+		        break;
+	    	}
+	    	else if(SelectObjectType[playerid] == OBJECT_SELECT_CLEAN)
+	    	{
+	    		new model,Float:cPos[3],Float:cRot[3];
+				model = Streamer_GetIntData(STREAMER_TYPE_OBJECT,DynamicObject[slot],E_STREAMER_MODEL_ID);
+				Streamer_GetFloatData(STREAMER_TYPE_OBJECT,DynamicObject[slot],E_STREAMER_X,cPos[0]);
+				Streamer_GetFloatData(STREAMER_TYPE_OBJECT,DynamicObject[slot],E_STREAMER_Y,cPos[1]);
+				Streamer_GetFloatData(STREAMER_TYPE_OBJECT,DynamicObject[slot],E_STREAMER_Z,cPos[2]);
+				Streamer_GetFloatData(STREAMER_TYPE_OBJECT,DynamicObject[slot],E_STREAMER_R_X,cRot[0]);
+				Streamer_GetFloatData(STREAMER_TYPE_OBJECT,DynamicObject[slot],E_STREAMER_R_Y,cRot[1]);
+				Streamer_GetFloatData(STREAMER_TYPE_OBJECT,DynamicObject[slot],E_STREAMER_R_Z,cRot[2]);
+                DestroyDynamicObject(DynamicObject[slot]);
+				Loop(index,MAX_OBJECT_MATERIAL_SLOT)
+				{
+					DynamicObjectMaterial[slot][index] = MATERIAL_TYPE_NONE;
+				}
+				DynamicObject[slot] = CreateDynamicObject(model,cPos[0],cPos[1],cPos[2],cRot[0],cRot[1],cRot[2]);
+				Streamer_Update(playerid);
+				break;
+	    	}
 	        break;
 	    }
 	}

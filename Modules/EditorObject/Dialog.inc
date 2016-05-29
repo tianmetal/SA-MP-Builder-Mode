@@ -64,16 +64,16 @@ Dialog:Object_TextMenu(playerid, response, listitem, inputtext[])
 				GetDynamicObjectPos(DynamicObject[slot],cPos[0],cPos[1],cPos[2]);
 				GetDynamicObjectRot(DynamicObject[slot],cRot[0],cRot[1],cRot[2]);
 				new temp = CreateDynamicObject(Streamer_GetIntData(STREAMER_TYPE_OBJECT,DynamicObject[slot],E_STREAMER_MODEL_ID),cPos[0],cPos[1],cPos[2],cRot[0],cRot[1],cRot[2]);
-				ObjectMaterial[slot][index] = 0;
+				DynamicObjectMaterial[slot][index] = 0;
 				Loop(i,MAX_OBJECT_MATERIAL_SLOT)
 				{
-					if(ObjectMaterial[slot][i] == MATERIAL_TYPE_TEXTURE)
+					if(DynamicObjectMaterial[slot][i] == MATERIAL_TYPE_TEXTURE)
 					{
 						new modelid,txdname[32],texturename[32],color;
 						GetDynamicObjectMaterial(DynamicObject[slot],i,modelid,txdname,texturename,color);
 						SetDynamicObjectMaterial(temp,i,modelid,txdname,texturename,color);
 					}
-					else if(ObjectMaterial[slot][i] == MATERIAL_TYPE_MESSAGE)
+					else if(DynamicObjectMaterial[slot][i] == MATERIAL_TYPE_MESSAGE)
 					{
 						new text[256],size,font[32],fsize,bold,fcolor,bcolor,alignment;
 						GetDynamicObjectMaterialText(DynamicObject[slot],i,text,size,font,fsize,bold,fcolor,bcolor,alignment);
