@@ -400,6 +400,7 @@ CMD:object(playerid,params[])
                     GetPlayerPos(playerid,cPos[0],cPos[1],cPos[2]);
                     DynamicObject[slot] = CreateDynamicObject(model,cPos[0],cPos[1],cPos[2],0.0,0.0,0.0);
                     DynamicObjectPriority[slot] = 0;
+                    ObjectEditor[slot] = INVALID_PLAYER_ID;
                     Iter_Add(DynamicObjects,slot);
                     Streamer_Update(playerid);
                     format(string,128,"OBJECT: Object created with ID %d, total object: %d",slot,Iter_Count(DynamicObjects));
@@ -485,6 +486,7 @@ CMD:object(playerid,params[])
 								DynamicObjectMaterial[slot2][index] = MATERIAL_TYPE_MESSAGE;
 							}
 						}
+						ObjectEditor[slot2] = INVALID_PLAYER_ID;
                         Streamer_Update(playerid);
                         format(string,128,"OBJECT: Object with ID %d has been copied to object with ID %d, total object: %d",slot,slot2,Iter_Count(DynamicObjects));
                         SendClientMessage(playerid,X11_YELLOW,string);
@@ -648,10 +650,10 @@ CMD:object(playerid,params[])
         }
         case 13:
         {
-            if(!IsNull(params))
+            if(!IsNull(subparam))
             {
             	new name[64];
-            	format(name,sizeof(name),"output/objects/%s",params);
+            	format(name,sizeof(name),"output/objects/%s",subparam);
                 if(Iter_Count(DynamicObjects) != 0)
                 {
                 	new File:hFile = fopen(name,io_write);
@@ -776,6 +778,7 @@ CMD:object(playerid,params[])
 								if(slot == cellmin) break;
 								Iter_Add(DynamicObjects,slot);
 								DynamicObject[slot] = CreateDynamicObject(model,cPos[0],cPos[1],cPos[2],cRot[0],cRot[1],cRot[2]);
+								ObjectEditor[slot] = INVALID_PLAYER_ID;
 								loaded++;
 							}
 						}
@@ -803,6 +806,7 @@ CMD:object(playerid,params[])
 											if(slot == cellmin) break;
 											Iter_Add(DynamicObjects,slot);
 											DynamicObject[slot] = CreateDynamicObject(model,cPos[0],cPos[1],cPos[2],cRot[0],cRot[1],cRot[2]);
+											ObjectEditor[slot] = INVALID_PLAYER_ID;
 											loaded++;
 										}
 									}
