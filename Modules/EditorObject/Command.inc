@@ -14,8 +14,6 @@ SSCANF:objectmenu(string[])
     else if(!strcmp(string,"rotate",true)) return 6;
     else if(!strcmp(string,"select",true)) return 7;
     else if(!strcmp(string,"control",true)) return 7;
-    else if(!strcmp(string,"save",true)) return 8;
-    else if(!strcmp(string,"load",true)) return 9;
     else if(!strcmp(string,"tele",true)) return 10;
     else if(!strcmp(string,"goto",true)) return 10;
     else if(!strcmp(string,"mgethere",true)) return 11;
@@ -24,8 +22,6 @@ SSCANF:objectmenu(string[])
     else if(!strcmp(string,"model",true)) return 14;
     else if(!strcmp(string,"attach",true)) return 15;
     else if(!strcmp(string,"gethere",true)) return 16;
-    else if(!strcmp(string,"listmap",true)) return 17;
-    else if(!strcmp(string,"maplist",true)) return 17;
     else if(!strcmp(string,"material",true)) return 18;
     else if(!strcmp(string,"import",true)) return 19;
 	else if(!strcmp(string,"textprop",true)) return 20;
@@ -57,331 +53,6 @@ SSCANF:colour(string[])
 	return color;
 }
 
-/*CMD:object(playerid,params[])
-{
-	new action,subparam[128],string[256];
-	unformat(params,"k<objectmenu>S()[128]",action,subparam);
-	switch(action)
-	{
-	    case 1:
-	    {
-	        if(IsNull(subparam)) return SEM(playerid,"<SYNTAX> : /object create [model]");
-			new model = strval(subparam);
-			new slot = Iter_Free(DynamicObjects);
-			if(slot != -1)
-			{
-			    new Float:cPos[3];
-			    GetPlayerPos(playerid,cPos[0],cPos[1],cPos[2]);
-				DynamicObject[slot] = CreateDynamicObject(model,cPos[0],cPos[1],cPos[2],0.0,0.0,0.0);
-				Streamer_Update(playerid);
-				ObjectEditor[slot] = INVALID_PLAYER_ID;
-				SetPlayerPos(playerid,cPos[0],cPos[1],(cPos[2]+2.0));
-				Iter_Add(DynamicObjects,slot);
-				format(string,144,"<OBJECT> : "WHITE"Created object model '"YELLOW"%d"WHITE"' assigned to slot id '"YELLOW"%d"WHITE"', total objects: "GREEN"%d",model,slot,Iter_Count(DynamicObjects));
-				SendClientMessage(playerid,X11_LIGHTBLUE,string);
-			}
-			else SEM(playerid,"<ERROR> : No object free slot!");
-	    }
-	    case 2:
-	    {
-            if(IsNull(subparam)) return SEM(playerid,"<SYNTAX> : /object destroy [slot]");
-            new slot = strval(subparam);
-            if(Iter_Contains(DynamicObjects,slot))
-            {
-                DestroyDynamicObject(DynamicObject[slot]);
-                Iter_Remove(DynamicObjects,slot);
-                format(string,144,"<OBJECT> : "WHITE"Deleted object with slot id '"YELLOW"%d"WHITE"' has been deleted, total objects: "GREEN"%d",slot,Iter_Count(DynamicObjects));
-				SendClientMessage(playerid,X11_LIGHTBLUE,string);
-            }
-            else SEM(playerid,"<ERROR> : Invalid object slot id!");
-	    }
-	    case 3:
-	    {
-			new slot,model;
-			if(sscanf(subparam,"dd",slot,model)) return SEM(playerid,"<SYNTAX> : /object model [slot] [newmodel]");
-			if(Iter_Contains(DynamicObjects,slot))
-			{
-				Streamer_SetIntData(STREAMER_TYPE_OBJECT,DynamicObject[slot],E_STREAMER_MODEL_ID,model);
-			    format(string,144,"<OBJECT> : "WHITE"Object slot id '"YELLOW"%d"WHITE"' model was changed to '"YELLOW"%d"WHITE"'",slot,model);
-				SendClientMessage(playerid,X11_LIGHTBLUE,string);
-			}
-			else SEM(playerid,"<ERROR> : Invalid object slot id!");
-	    }
-	    case 4:
-	    {
-			if(IsNull(subparam)) return SEM(playerid,"<SYNTAX> : /object clear [confirm]");
-			if(!strcmp(subparam,"confirm",true))
-			{
-			    new count = Iter_Count(DynamicObjects);
-				if(count > 0)
-				{
-				    foreach(new i : DynamicObjects)
-				    {
-				        DestroyDynamicObject(DynamicObject[i]);
-				    }
-				    Iter_Clear(DynamicObjects);
-				    format(string,144,"<OBJECT> : "YELLOW"%d objects "WHITE"have been deleted",count);
-					SendClientMessage(playerid,X11_LIGHTBLUE,string);
-				}
-				else SEM(playerid,"<ERROR> : There are no objects!");
-			}
-			else SEM(playerid,"<SYNTAX> : /object clear [confirm]");
-	    }
-	    case 5:
-	    {
-			new slot,direction,Float:amount,Float:speed;
-			if(sscanf(subparam,"dcfF(5.0)",slot,direction,amount,speed)) return SEM(playerid,"<SYNTAX> : /object move [slot] [direction (N,S,W,E,U,D)] [amount] [opt:speed]");
-			if(Iter_Contains(DynamicObjects,slot))
-			{
-			    new Float:cPos[3],
-			        objectid = DynamicObject[slot];
-			    GetDynamicObjectPos(objectid,cPos[0],cPos[1],cPos[2]);
-			    switch(direction)
-			    {
-			        case 'N','n': cPos[0] += amount;
-			        case 'S','s': cPos[0] -= amount;
-			        case 'W','w': cPos[1] += amount;
-			        case 'E','e': cPos[1] -= amount;
-			        case 'U','u': cPos[2] += amount;
-			        case 'D','d': cPos[2] -= amount;
-			    }
-			    MoveDynamicObjectEx(objectid,cPos[0],cPos[1],cPos[2],speed);
-			}
-			else SEM(playerid,"<ERROR> : Invalid object slot id!");
-	    }
-	    case 6:
-	    {
-	        new slot,Float:Rotation[3];
-	        if(sscanf(subparam,"dfff",slot,Rotation[0],Rotation[1],Rotation[2])) return SEM(playerid,"<SYNTAX> : /object rotate [slot] [rotX] [rotY] [rotZ]");
-	        if(Iter_Contains(DynamicObjects,slot))
-	        {
-				SetDynamicObjectRot(DynamicObject[slot],Rotation[0],Rotation[1],Rotation[2]);
-	        }
-	        else SEM(playerid,"<ERROR> : Invalid object slot id!");
-	    }
-	    case 7:
-	    {
-			if(IsNull(subparam)) return SEM(playerid,"<SYNTAX> : /object copy [slot]");
-			new slot = strval(subparam);
-			if(Iter_Contains(DynamicObjects,slot))
-			{
-			    new slot2 = Iter_Free(DynamicObjects);
-			    if(slot2 == -1) return SEM(playerid,"<ERROR> : No object free slot!");
-			    new model = Streamer_GetIntData(STREAMER_TYPE_OBJECT,DynamicObject[slot],E_STREAMER_MODEL_ID),
-			        Float:cPos[3],Float:cRot[3];
-				GetDynamicObjectPos(DynamicObject[slot],cPos[0],cPos[1],cPos[2]);
-				GetDynamicObjectRot(DynamicObject[slot],cRot[0],cRot[1],cRot[2]);
-				DynamicObject[slot2] = CreateDynamicObject(model,cPos[0],cPos[1],cPos[2],cRot[0],cRot[1],cRot[2]);
-				Iter_Add(DynamicObjects,slot2);
-				format(string,144,"<OBJECT> : "WHITE"Object slot '"YELLOW"%d"WHITE"' duplicated to object slot '"YELLOW"%d"WHITE"', total objects: "GREEN"%d",slot,slot2,Iter_Count(DynamicObjects));
-				SendClientMessage(playerid,X11_LIGHTBLUE,string);
-			}
-			else SEM(playerid,"<ERROR> : Invalid object slot id!");
-	    }
-	    case 8:
-	    {
-	        if(GetPVarType(playerid,"EditingObject") > 0) return SEM(playerid,"<ERROR> : You must first release your current object!");
-			if(IsNull(subparam)) SelectObject(playerid);
-			else
-			{
-			    new slot = strval(subparam);
-			    if(Iter_Contains(DynamicObjects,slot))
-			    {
-			        if((ObjectEditor[slot] != INVALID_PLAYER_ID) && (GetPVarType(ObjectEditor[slot],"EditingObject") == slot))
-			        {
-					    new playername[24];
-					    GetPlayerName(ObjectEditor[slot],playername,24);
-					    format(string,144,"<ERROR> : "RED"%s "GRAY"is currently editing this object!",playername);
-						return SEM(playerid,string);
-			        }
-			        if(Streamer_IsItemVisible(playerid,STREAMER_TYPE_OBJECT,DynamicObject[slot]))
-					{
-						format(string,144,"<OBJECT> : "WHITE"Selected object "YELLOW"slot %d",slot);
-	                    ObjectEditor[slot] = playerid;
-	                    SetPVarInt(playerid,"EditingObject",slot);
-	                    EditDynamicObject(playerid,DynamicObject[slot]);
-	                    SendClientMessage(playerid,X11_LIGHTBLUE,string);
-					}
-					else SEM(playerid,"<ERROR> : That object is not streamed in!");
-			    }
-			    else SEM(playerid,"<ERROR> : Invalid object slot id!");
-			}
-	    }
-	    case 9:
-	    {
-	        if(IsNull(subparam)) return SEM(playerid,"<SYNTAX> : /object goto [slot]");
-	        new slot = strval(subparam);
-			if(Iter_Contains(DynamicObjects,slot))
-			{
-				new Float:cPos[3];
-				GetDynamicObjectPos(DynamicObject[slot],cPos[0],cPos[1],cPos[2]);
-				Streamer_UpdateEx(playerid,cPos[0],cPos[1],cPos[2]);
-				SetPlayerPos(playerid,cPos[0],cPos[1],(cPos[2]+1.0));
-				format(string,144,"<OBJECT> : "WHITE"Teleported to object "YELLOW"slot %d",slot);
-				SendClientMessage(playerid,X11_LIGHTBLUE,string);
-			}
-			else SEM(playerid,"<ERROR> : Invalid object slot id!");
-	    }
-	    case 10:
-	    {
-	        if(IsNull(subparam)) return SEM(playerid,"<SYNTAX> : /object gethere [slot]");
-	        new slot = strval(subparam);
-			if(Iter_Contains(DynamicObjects,slot))
-			{
-				new Float:cPos[3];
-				GetPlayerPos(playerid,cPos[0],cPos[1],cPos[2]);
-				SetDynamicObjectPos(DynamicObject[slot],cPos[0],cPos[1],cPos[2]);
-				Streamer_Update(playerid);
-				SetPlayerPos(playerid,cPos[0],cPos[1],(cPos[2]+1.0));
-				format(string,144,"<OBJECT> : "WHITE"Teleported object "YELLOW"id %d "WHITE"to your location!",slot);
-				SendClientMessage(playerid,X11_LIGHTBLUE,string);
-			}
-			else SEM(playerid,"<ERROR> : Invalid object slot id!");
-	    }
-	    case 11:
-	    {
-	        new mode,filename[64];
-	        if(sscanf(subparam,"k<importmenu>s[32]",mode,filename)) return SEM(playerid,"<SYNTAX> : /object import [mode (samp,mta)] [name]");
-			if(mode == 1)
-			{
-			    format(filename,sizeof(filename),"input/objects/samp/%s",filename);
-			    if(fexist(filename))
-			    {
-			        new File:file = fopen(filename,io_read),
-						data[256],loaded;
-			        while(fread(file,data,sizeof(data)) > 0)
-			        {
-			            if(strfind(data,"CreateObject") == -1 && strfind(data,"CreateDynamicObject") == -1) continue;
-						new slot = Iter_Free(DynamicObjects);
-						if(slot == -1) break;
-			            new model,Float:cPos[3],Float:cRot[3];
-			            strmid(string,data,(strfind(data,"(")+1),strfind(data,")"),sizeof(string));
-			            unformat(string,"p<,>dffffff",model,cPos[0],cPos[1],cPos[2],cRot[0],cRot[1],cRot[2]);
-			            DynamicObject[slot] = CreateDynamicObject(model,cPos[0],cPos[1],cPos[2],cRot[0],cRot[1],cRot[2]);
-			            ObjectEditor[slot] = INVALID_PLAYER_ID;
-			            Iter_Add(DynamicObjects,slot);
-			            loaded++;
-			        }
-			        fclose(file);
-			        Streamer_Update(playerid);
-			        format(string,144,"<OBJECT> : "YELLOW"%d objects "WHITE"has been imported from '"GREEN"%s"WHITE"'",loaded,filename);
-					SendClientMessage(playerid,X11_LIGHTBLUE,string);
-			    }
-			    else SEM(playerid,"<ERROR> : File does not exist!");
-			}
-			else if(mode == 2)
-			{
-			    format(filename,sizeof(filename),"input/objects/mta/%s",filename);
-			    if(fexist(filename))
-			    {
-			        new File:file = fopen(filename,io_read),
-						data[512],loaded;
-			        while(fread(file,data,sizeof(data)) > 0)
-			        {
-			            new model,Float:cPos[3],Float:cRot[3];
-			            if(sscanf(data,"p<\">'object''model='d'posX='f'posY='f'posZ='f'rotX='f'rotY='f'rotZ='f",model,cPos[0],cPos[1],cPos[2],cRot[0],cRot[1],cRot[2])) continue;
-                        new slot = Iter_Free(DynamicObjects);
-						if(slot == -1) break;
-                        DynamicObject[slot] = CreateDynamicObject(model,cPos[0],cPos[1],cPos[2],cRot[0],cRot[1],cRot[2]);
-                        ObjectEditor[slot] = INVALID_PLAYER_ID;
-                        Iter_Add(DynamicObjects,slot);
-                        loaded++;
-			        }
-			        fclose(file);
-			        Streamer_Update(playerid);
-			        format(string,144,"<OBJECT> : "YELLOW"%d objects "WHITE"has been imported from '"GREEN"%s"WHITE"'",loaded,filename);
-					SendClientMessage(playerid,X11_LIGHTBLUE,string);
-			    }
-			    else SEM(playerid,"<ERROR> : File does not exist!");
-			}
-			else SEM(playerid,"<ERROR> : Invalid mode, valid modes: samp,mta");
-	    }
-	    case 12:
-	    {
-	        if(Iter_Count(DynamicObjects) == 0) return SEM(playerid,"<ERROR> : There are no objects!");
-	        new mode,filename[32],world,interior,Float:distance;
-	        if(sscanf(subparam,"k<exportmenu>s[32]D(-1)D(-1)F(300.0)",mode,filename,world,interior,distance)) return SEM(playerid,"<SYNTAX> : /object export [mode (samp,streamer)] [map name] [opt:world] [opt:interior] [opt:distance]");
-			if(mode == 1)
-			{
-			    new dir[64];
-			    format(dir,sizeof(dir),"output/objects/%s.pwn",filename);
-				new File:file = fopen(dir,io_write);
-				foreach(new slot : DynamicObjects)
-				{
-					new model = Streamer_GetIntData(STREAMER_TYPE_OBJECT,DynamicObject[slot],E_STREAMER_MODEL_ID),
-			        	Float:cPos[3],Float:cRot[3];
-					GetDynamicObjectPos(DynamicObject[slot],cPos[0],cPos[1],cPos[2]);
-					GetDynamicObjectRot(DynamicObject[slot],cRot[0],cRot[1],cRot[2]);
-				    format(string,sizeof(string),"CreateObject(%d, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.1f);\r\n",model,cPos[0],cPos[1],cPos[2],cRot[0],cRot[1],cRot[2],distance);
-				    fwrite(file,string);
-				}
-				fclose(file);
-				format(string,144,"<OBJECT> : "YELLOW"%d objects "WHITE"have been exported to '"GREEN"%s"WHITE"'",Iter_Count(DynamicObjects),dir);
-				SendClientMessage(playerid,X11_LIGHTBLUE,string);
-			}
-			else if(mode == 2)
-			{
-			    new dir[64];
-			    format(dir,sizeof(dir),"output/objects/%s.pwn",filename);
-				new File:file = fopen(dir,io_write);
-				foreach(new slot : DynamicObjects)
-				{
-					new model = Streamer_GetIntData(STREAMER_TYPE_OBJECT,DynamicObject[slot],E_STREAMER_MODEL_ID),
-			        	Float:cPos[3],Float:cRot[3];
-					GetDynamicObjectPos(DynamicObject[slot],cPos[0],cPos[1],cPos[2]);
-					GetDynamicObjectRot(DynamicObject[slot],cRot[0],cRot[1],cRot[2]);
-				    format(string,sizeof(string),"CreateDynamicObject(%d, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %d, %d, -1, %.1f);\r\n",model,cPos[0],cPos[1],cPos[2],cRot[0],cRot[1],cRot[2],world,interior,distance);
-				    fwrite(file,string);
-				}
-				fclose(file);
-				format(string,144,"<OBJECT> : "YELLOW"%d objects have been exported to '"GREEN"%s"WHITE"'",Iter_Count(DynamicObjects),dir);
-				SendClientMessage(playerid,X11_LIGHTBLUE,string);
-			}
-			else SEM(playerid,"<ERROR> : Invalid mode, valid modes: samp,streamer");
-	    }
-	    case 13:
-	    {
-	    	new slot,index,modelid,txdname[32],texturename[32],color;
-	    	if(sscanf(subparam,"ddds[32]s[32]D(0)",slot,index,modelid,txdname,texturename,color)) return SEM(playerid,"<SYNTAX> : /object material [object slot] [index] [modelid] [txd name] [texture name] [color]");
-	    	if(index < 0 || index > MAX_OBJECT_MATERIAL_SLOT) return SEM(playerid,"<ERROR> : Material index cannot go below 0 or above "#MAX_OBJECT_MATERIAL_SLOT"!");
-	    	if(Iter_Contains(DynamicObjects,slot))
-			{
-	    		ObjectMaterial[slot][index] = MATERIAL_TYPE_TEXTURE;
-	    		SetDynamicObjectMaterial(DynamicObject[slot],index,modelid,txdname,texturename,color);
-	    	}
-	    	else SEM(playerid,"ERROR: Invalid object slot id");
-	    }
-	    case 14:
-	    {
-	    	new slot,index;
-	    	if(sscanf(subparam,"dD(0)",slot,index)) return SEM(playerid,"<SYNTAX> : /object settext [object slot] [index]");
-	    	if(index < 0 || index > MAX_OBJECT_MATERIAL_SLOT) return SEM(playerid,"<ERROR> : Material index cannot go below 0 or above "#MAX_OBJECT_MATERIAL_SLOT"!");
-	    	if(Iter_Contains(DynamicObjects,slot))
-			{
-				if(ObjectMaterial[slot][index] != MATERIAL_TYPE_MESSAGE)
-				{
-					ObjectMaterial[slot][index] = MATERIAL_TYPE_MESSAGE;
-	    			SetDynamicObjectMaterialText(DynamicObject[slot],index,"Text");
-				}
-	    		SetPVarInt(playerid,"EditingObject",slot);
-	    		SetPVarInt(playerid,"EditingIndex",index);
-	    		Dialog_Show(playerid,Object_TextMenu,DIALOG_STYLE_LIST,"Material Text","Text\nResolution\nFont\nFont Size\nToggle Bold\nFont Color\nBackground Color\nText Alignment\nReset","Select","Close");
-	    	}
-	    	else SEM(playerid,"ERROR: Invalid object slot id");
-	    }
-	    case 15:
-	    {
-	    	
-	    }
-	    default:
-	    {
-	        SEM(playerid,"<SYNTAX> : /object [action]");
-	        SEM(playerid,"<ACTIONS> : create,destroy,model,clear,move,rotate,copy,select,goto,gethere,import,export");
-	    }
-	}
-	return 1;
-}*/
-
 CMD:object(playerid,params[])
 {
     new string[256],item,subparam[96];
@@ -403,12 +74,12 @@ CMD:object(playerid,params[])
                     ObjectEditor[slot] = INVALID_PLAYER_ID;
                     Iter_Add(DynamicObjects,slot);
                     Streamer_Update(playerid);
-                    format(string,128,"OBJECT: Object created with ID %d, total object: %d",slot,Iter_Count(DynamicObjects));
-                    SendClientMessage(playerid,X11_YELLOW,string);
+                    format(string,144,"<OBJECT> : "WHITE"Object created with "YELLOW"ID %d"WHITE", total objects: "GREEN"%d",slot,Iter_Count(DynamicObjects));
+                    SendClientMessage(playerid,X11_LIGHTBLUE,string);
                 }
-                else SEM(playerid,"ERROR: Full slot!");
+                else SEM(playerid,"<ERROR> : Full slot!");
             }
-            else SEM(playerid,"KEGUNAAN: /object create [object model id]");
+            else SEM(playerid,"<SYNTAX> : /object create [object model id]");
         }
         case 2:
         {
@@ -423,12 +94,12 @@ CMD:object(playerid,params[])
 					{
 						DynamicObjectMaterial[slot][i] = MATERIAL_TYPE_NONE;
 					}
-                    format(string,128,"OBJECT: Object with ID %d has been deleted, total object: %d",slot,Iter_Count(DynamicObjects));
-                    SendClientMessage(playerid,X11_YELLOW,string);
+                    format(string,144,"<OBJECT> : "WHITE"Object with "YELLOW"ID %d "WHITE"has been deleted, total objects: "GREEN"%d",slot,Iter_Count(DynamicObjects));
+                    SendClientMessage(playerid,X11_LIGHTBLUE,string);
                 }
-                else SEM(playerid,"ERROR: Invalid objectid!");
+                else SEM(playerid,"<ERROR> : Invalid objectid!");
             }
-            else SEM(playerid,"KEGUNAAN: /object delete [object id]");
+            else SEM(playerid,"<SYNTAX> : /object delete [object id]");
         }
         case 3:
         {
@@ -442,9 +113,9 @@ CMD:object(playerid,params[])
 						DynamicObjectMaterial[slot][i] = MATERIAL_TYPE_NONE;
 					}
                 }
-                format(string,128,"OBJECT: %d objects have been cleared",Iter_Count(DynamicObjects));
+                format(string,144,"<OBJECT> : "YELLOW"%d objects "WHITE"have been cleared",Iter_Count(DynamicObjects));
                 Iter_Clear(DynamicObjects);
-                SendClientMessage(playerid,X11_YELLOW,string);
+                SendClientMessage(playerid,X11_LIGHTBLUE,string);
             }
             else SEM(playerid,"WARNING: Are you sure you want to clear all the objects ? (/object clear confirm)");
         }
@@ -488,21 +159,21 @@ CMD:object(playerid,params[])
 						}
 						ObjectEditor[slot2] = INVALID_PLAYER_ID;
                         Streamer_Update(playerid);
-                        format(string,128,"OBJECT: Object with ID %d has been copied to object with ID %d, total object: %d",slot,slot2,Iter_Count(DynamicObjects));
-                        SendClientMessage(playerid,X11_YELLOW,string);
+                        format(string,144,"<OBJECT> : "WHITE"Duplicated object with "YELLOW"ID %d "WHITE" to "YELLOW"ID %d"WHITE", total objects: "GREEN"%d",slot,slot2,Iter_Count(DynamicObjects));
+                        SendClientMessage(playerid,X11_LIGHTBLUE,string);
                     }
-                    else SEM(playerid,"ERROR: Full slot!");
+                    else SEM(playerid,"<ERROR> : Full slot!");
                 }
-                else SEM(playerid,"ERROR: Invalid objectid!");
+                else SEM(playerid,"<ERROR> : Invalid objectid!");
             }
-            else SEM(playerid,"KEGUNAAN: /object copy [object id]");
+            else SEM(playerid,"<SYNTAX> : /object copy [object id]");
         }
         case 5:
         {
             new slot,direction,Float:amount,Float:speed;
             if(!sscanf(subparam,"dcfF(5.0)",slot,direction,amount,speed))
             {
-                if(floatround(speed) <= 0) return SEM(playerid,"ERROR: Speed cannot go below 1!");
+                if(floatround(speed) <= 0) return SEM(playerid,"<ERROR> : Speed cannot go below 1!");
                 if(Iter_Contains(DynamicObjects,slot))
                 {
                     new Float:cPos[4];
@@ -520,13 +191,13 @@ CMD:object(playerid,params[])
                         case 'R','r': GetXYRightOfPoint(cPos[0],cPos[1],cPos[0],cPos[1],cPos[3],amount);
                         case 'F','f': GetXYInFrontOfPoint(cPos[0],cPos[1],cPos[0],cPos[1],cPos[3],amount);
                         case 'B','b': GetXYBehindPoint(cPos[0],cPos[1],cPos[0],cPos[1],cPos[3],amount);
-                        default: return SEM(playerid,"ERROR: Invalid direction!");
+                        default: return SEM(playerid,"<ERROR> : Invalid direction!");
                     }
                     MoveDynamicObjectEx(DynamicObject[slot],cPos[0],cPos[1],cPos[2],speed);
                 }
-                else SEM(playerid,"ERROR: Invalid objectid!");
+                else SEM(playerid,"<ERROR> : Invalid objectid!");
             }
-            else SEM(playerid,"KEGUNAAN: /object move [object id] [directoion (N/S/E/W/U(p)/D(own))] [amount] [opt:speed = 5.0]");
+            else SEM(playerid,"<SYNTAX> : /object move [object id] [directoion (N/S/E/W/U(p)/D(own))] [amount] [opt:speed = 5.0]");
         }
         case 6:
         {
@@ -538,7 +209,7 @@ CMD:object(playerid,params[])
                     SetDynamicObjectRot(DynamicObject[slot],cRot[0],cRot[1],cRot[2]);
                 }
             }
-            else SEM(playerid,"KEGUNAAN: /object rotate [object id] [rotation X] [rotation Y] [rotation Z]");
+            else SEM(playerid,"<SYNTAX> : /object rotate [object id] [rotation X] [rotation Y] [rotation Z]");
         }
         case 7:
         {
@@ -553,17 +224,17 @@ CMD:object(playerid,params[])
                         new editor = ObjectEditor[slot];
 						if(GetPVarType(editor,"EditingObject") == slot)
 						{
-							format(string,sizeof(string),"ERROR: %s is currently editing this object!",ReturnPlayerName(editor));
+							format(string,sizeof(string),"<ERROR> : %s is currently editing this object!",ReturnPlayerName(editor));
                             return SEM(playerid,string);
 						}
                     }
-                    format(string,sizeof(string),"OBJECT: Selected object id %d!",slot);
+                    format(string,sizeof(string),"<OBJECT> : "WHITE"Selected object "YELLOW"id %d",slot);
                     ObjectEditor[slot] = playerid;
                     SetPVarInt(playerid,"EditingObject",slot);
                     EditDynamicObject(playerid,DynamicObject[slot]);
-                    SendClientMessage(playerid,X11_YELLOW,string);
+                    SendClientMessage(playerid,X11_LIGHTBLUE,string);
                 }
-                else SEM(playerid,"ERROR: Invalid object id!");
+                else SEM(playerid,"<ERROR> : Invalid object id!");
             }
             else 
             {
@@ -583,8 +254,8 @@ CMD:object(playerid,params[])
                     Streamer_GetFloatData(STREAMER_TYPE_OBJECT,DynamicObject[slot],E_STREAMER_Y,cPos[1]);
                     Streamer_GetFloatData(STREAMER_TYPE_OBJECT,DynamicObject[slot],E_STREAMER_Z,cPos[2]);
                     SetPlayerPos(playerid,cPos[0],cPos[1],cPos[2]);
-                    format(string,128,"OBJECT: Teleported to object id %d!",slot);
-                    SendClientMessage(playerid,X11_YELLOW,string);
+                    format(string,144,"<OBJECT> : "WHITE"Teleported to object "YELLOW"id %d",slot);
+                    SendClientMessage(playerid,X11_LIGHTBLUE,string);
                 }
             }
         }
@@ -614,17 +285,17 @@ CMD:object(playerid,params[])
                         SetDynamicObjectPos(DynamicObject[slot],newPos[0],newPos[1],newPos[2]);
                     }
                 }
-                format(string,128,"OBJECT: %d objects moved to your location!",Iter_Count(DynamicObjects));
-                SendClientMessage(playerid,X11_YELLOW,string);
+                format(string,144,"<OBJECT> : "YELLOW"%d objects "WHITE"has been teleported to your location!",Iter_Count(DynamicObjects));
+                SendClientMessage(playerid,X11_LIGHTBLUE,string);
             }
-            else SEM(playerid,"WARNING: Are you sure you want to clear all the objects ? (/object clear confirm)");
+            else SEM(playerid,"WARNING: Are you sure you want to teleport all the objects to your location ? (/object mgethere confirm)");
         }
         case 12:
         {
             new direction,Float:amount,Float:speed;
             if(!sscanf(subparam,"cfF(5.0)",direction,amount,speed))
             {
-                if(floatround(speed) <= 0) return SEM(playerid,"ERROR: Speed cannot go below 1!");
+                if(floatround(speed) <= 0) return SEM(playerid,"<ERROR> : Speed cannot go below 1!");
                 foreach(new slot : DynamicObjects)
                 {
                     new Float:cPos[3];
@@ -639,14 +310,14 @@ CMD:object(playerid,params[])
                         case 'W','w': cPos[0] -= amount;
                         case 'U','u': cPos[2] += amount;
                         case 'D','d': cPos[2] -= amount;
-                        default: return SEM(playerid,"ERROR: Invalid direction!");
+                        default: return SEM(playerid,"<ERROR> : Invalid direction!");
                     }
                     MoveDynamicObjectEx(DynamicObject[slot],cPos[0],cPos[1],cPos[2],speed);
                 }
-                format(string,128,"OBJECT: %d objects have been moved!",Iter_Count(DynamicObjects));
-                SendClientMessage(playerid,X11_YELLOW,string);
+                format(string,144,"<OBJECT> : "YELLOW"%d objects "WHITE"have been moved",Iter_Count(DynamicObjects));
+                SendClientMessage(playerid,X11_LIGHTBLUE,string);
             }
-            else SEM(playerid,"KEGUNAAN: /object mmove [directoion (N/S/E/W/U(p)/D(own))] [amount] [opt:speed = 5.0]");
+            else SEM(playerid,"<SYNTAX> : /object mmove [directoion (N/S/E/W/U(p)/D(own))] [amount] [opt:speed = 5.0]");
         }
         case 13:
         {
@@ -684,8 +355,8 @@ CMD:object(playerid,params[])
                         fwrite(hFile,string);
                     }
                     fclose(hFile);
-                    format(string,128,"OBJECT: %d objects saved to file %s",Iter_Count(DynamicObjects),name);
-                    SendClientMessage(playerid,X11_YELLOW,string);
+                    format(string,144,"<OBJECT> : "YELLOW"%d objects "WHITE"saved to file "GREEN"%s",Iter_Count(DynamicObjects),name);
+                    SendClientMessage(playerid,X11_LIGHTBLUE,string);
                 }
             }
         }
@@ -699,9 +370,9 @@ CMD:object(playerid,params[])
                     Streamer_SetIntData(STREAMER_TYPE_OBJECT,DynamicObject[slot],E_STREAMER_MODEL_ID,newmodel);
                     Streamer_Update(playerid);
                 }
-                else SEM(playerid,"ERROR: Invalid object slot!");
+                else SEM(playerid,"<ERROR> : Invalid object slot!");
             }
-            else SEM(playerid,"KEGUNAAN: /object model [object id] [object model]");
+            else SEM(playerid,"<SYNTAX> : /object model [object id] [object model]");
         }
         case 15:
         {
@@ -719,9 +390,9 @@ CMD:object(playerid,params[])
                         Streamer_SetIntData(STREAMER_TYPE_OBJECT,DynamicObject[slot],E_STREAMER_ATTACHED_VEHICLE,INVALID_VEHICLE_ID);
                     }
                 }
-                else SEM(playerid,"ERROR: Invalid object slot!");
+                else SEM(playerid,"<ERROR> : Invalid object slot!");
             }
-            else SEM(playerid,"KEGUNAAN: /object attach [object id] [offset X] [offset Y] [offset Z] [rotation X] [rotation Y] [rotation Z]");
+            else SEM(playerid,"<SYNTAX> : /object attach [object id] [offset X] [offset Y] [offset Z] [rotation X] [rotation Y] [rotation Z]");
         }
         case 16:
         {
@@ -733,7 +404,7 @@ CMD:object(playerid,params[])
                     new Float:cPos[3];
                     GetPlayerPos(playerid,cPos[0],cPos[1],cPos[2]);
                     SetDynamicObjectPos(DynamicObject[slot],cPos[0],cPos[1],cPos[2]);
-                    format(string,128,"OBJECT: Teleported object id %d to your location!",slot);
+                    format(string,144,"<OBJECT> : Teleported object id %d to your location!",slot);
                     SendClientMessage(playerid,X11_YELLOW,string);
                 }
             }
@@ -743,7 +414,7 @@ CMD:object(playerid,params[])
             new slot,index,model,txdname[32],texture[32],color[4];
             if(!sscanf(subparam,"ddds[32]s[32]D(0)D(0)D(0)D(0)",slot,index,model,txdname,texture,color[0],color[1],color[2],color[3]))
             {
-				if((index >= MAX_OBJECT_MATERIAL_SLOT) || (index < 0)) return SEM(playerid,"ERROR: index cannot go below 0 or over 9!");
+				if((index >= MAX_OBJECT_MATERIAL_SLOT) || (index < 0)) return SEM(playerid,"<ERROR> : index cannot go below 0 or over 9!");
                 if(Iter_Contains(DynamicObjects,slot))
                 {
 					if(model == 0)
@@ -753,9 +424,9 @@ CMD:object(playerid,params[])
                     SetDynamicObjectMaterial(DynamicObject[slot],index,model,txdname,texture,RGBAToInt(color[0],color[1],color[2],color[3]));
 					DynamicObjectMaterial[slot][index] = MATERIAL_TYPE_TEXTURE;
                 }
-                else SEM(playerid,"ERROR: Invalid object slot!");
+                else SEM(playerid,"<ERROR> : Invalid object slot!");
             }
-            else SEM(playerid,"KEGUNAAN: /object material [object id] [index] [model] [txdname] [texture] [opt: alpha] [opt: red]  [opt: green]  [opt: blue]");
+            else SEM(playerid,"<SYNTAX> : /object material [object id] [index] [model] [txdname] [texture] [opt: alpha] [opt: red]  [opt: green]  [opt: blue]");
         }
         case 19:
         {
@@ -842,19 +513,19 @@ CMD:object(playerid,params[])
 							fclose(hFile);
 						}
 					}
-                    format(string,144,"OBJECT: %d objects loaded from file '%s'",loaded,dir);
-                    SendClientMessage(playerid,X11_YELLOW,string);
+                    format(string,144,"<OBJECT> : "YELLOW"%d objects "WHITE"loaded from file '"GREEN"%s"WHITE"'",loaded,dir);
+                    SendClientMessage(playerid,X11_LIGHTBLUE,string);
                 }
-                else SEM(playerid,"ERROR: You must first clear your current map!");
+                else SEM(playerid,"<ERROR> : You must first clear your current map!");
             }
-            else SEM(playerid,"KEGUNAAN: /object import [name] [confirm]");
+            else SEM(playerid,"<SYNTAX> : /object import [name] [confirm]");
         }
 		case 20:
 		{
 			new slot,index;
             if(!sscanf(subparam,"dD(0)",slot,index))
             {
-				if((index >= MAX_OBJECT_MATERIAL_SLOT) || (index < 0)) return SEM(playerid,"ERROR: index cannot go below 0 or over 9!");
+				if((index >= MAX_OBJECT_MATERIAL_SLOT) || (index < 0)) return SEM(playerid,"<ERROR> : index cannot go below 0 or over 9!");
                 if(Iter_Contains(DynamicObjects,slot))
                 {
 					if(DynamicObjectMaterial[slot][index] != MATERIAL_TYPE_MESSAGE)
@@ -866,9 +537,9 @@ CMD:object(playerid,params[])
 					SetPVarInt(playerid,"EditingIndex",index);
 					Dialog_Show(playerid,Object_TextMenu,DIALOG_STYLE_LIST,"Material Text","Text\nResolution\nFont\nFont Size\nToggle Bold\nFont Color\nBackground Color\nText Alignment\nReset","Select","Close");
                 }
-                else SEM(playerid,"ERROR: Invalid object slot!");
+                else SEM(playerid,"<ERROR> : Invalid object slot!");
             }
-            else SEM(playerid,"KEGUNAAN: /object textprop [object id] [index]");
+            else SEM(playerid,"<SYNTAX> : /object textprop [object id] [index]");
 		}
 		case 21:
 		{
@@ -893,14 +564,14 @@ CMD:object(playerid,params[])
 					DynamicObject[slot] = CreateDynamicObject(model,cPos[0],cPos[1],cPos[2],cRot[0],cRot[1],cRot[2]);
 					Streamer_Update(playerid);
                 }
-                else SEM(playerid,"ERROR: Invalid objectid!");
+                else SEM(playerid,"<ERROR> : Invalid objectid!");
             }
-            else SEM(playerid,"KEGUNAAN: /object resetmaterial [object id]");
+            else SEM(playerid,"<SYNTAX> : /object resetmaterial [object id]");
 		}
 		case 22:
 		{
 			SelectObjectType[playerid] = OBJECT_SELECT_DELETE;
-			SendClientMessage(playerid,X11_WHITE,"EDITOR: Click an object to delete it!");
+			SendClientMessage(playerid,X11_LIGHTBLUE,"<OBJECT> : "YELLOW"Click an object to delete it!");
 			SelectObject(playerid);
 		}
 		case 23:
@@ -927,49 +598,49 @@ CMD:object(playerid,params[])
 						count++;
 					}
 				}
-				format(string,128,"OBJECT: %d objects has been deleted, total object: %d",count,Iter_Count(DynamicObjects));
-                SendClientMessage(playerid,X11_YELLOW,string);
+				format(string,144,"<OBJECT> : "YELLOW"%d objects "WHITE"has been deleted, total objects: "GREEN"%d",count,Iter_Count(DynamicObjects));
+                SendClientMessage(playerid,X11_LIGHTBLUE,string);
 			}
-			else SEM(playerid,"KEGUNAAN: /object rdelete [radius]");
+			else SEM(playerid,"<SYNTAX> : /object rdelete [radius]");
 		}
         case 24:
         {
             new index,model,txdname[32],texture[32],color[4];
             if(!sscanf(subparam,"dds[32]s[32]D(0)D(0)D(0)D(0)",index,model,txdname,texture,color[0],color[1],color[2],color[3]))
             {
-				if((index >= MAX_OBJECT_MATERIAL_SLOT) || (index < 0)) return SEM(playerid,"ERROR: index cannot go below 0 or over 9!");
+				if((index >= MAX_OBJECT_MATERIAL_SLOT) || (index < 0)) return SEM(playerid,"<ERROR> : index cannot go below 0 or over 9!");
                 format(string,sizeof(string),"%d|%d|%s|%s|%d",index,model,txdname,texture,RGBAToInt(color[0],color[1],color[2],color[3]));
                 SetPVarString(playerid,"PaintParam",string);
                 SelectObjectType[playerid] = OBJECT_SELECT_PAINT;
-                SendClientMessage(playerid,X11_WHITE,"EDITOR: Click an object to paint it!");
+                SendClientMessage(playerid,X11_LIGHTBLUE,"<EDITOR> : "YELLOW"Click an object to paint it!");
                 SelectObject(playerid);
             }
-            else SEM(playerid,"KEGUNAAN: /object paintbrush [index] [model] [txdname] [texture] [opt: alpha] [opt: red]  [opt: green]  [opt: blue]");
+            else SEM(playerid,"<SYNTAX> : /object paintbrush [index] [model] [txdname] [texture] [opt: alpha] [opt: red]  [opt: green]  [opt: blue]");
         }
         case 25:
         {
             SelectObjectType[playerid] = OBJECT_SELECT_CLEAN;
-            SendClientMessage(playerid,X11_WHITE,"EDITOR: Click an object to clean it!");
+            SendClientMessage(playerid,X11_LIGHTBLUE,"<EDITOR> : "YELLOW"Click an object to clean it!");
             SelectObject(playerid);
         }
         case 26:
         {
         	new slot,priority;
-        	if(sscanf(params,"dd",slot,priority)) return SEM(playerid,"KEGUNAAN: /object priority [slot] [priority]");
+        	if(sscanf(params,"dd",slot,priority)) return SEM(playerid,"<SYNTAX> : /object priority [slot] [priority]");
         	if(Iter_Contains(DynamicObjects,slot))
         	{
-        		if(priority > 5 || priority < 0) return SEM(playerid,"ERROR: Priority cannot go over 5 or below 0!");
-        		format(string,144,"OBJECT: Object "RED"slot %d "YELLOW"priority is set to "GREEN"%d "YELLOW"from "CYAN"%d",slot,priority,DynamicObjectPriority[slot]);
+        		if(priority > 5 || priority < 0) return SEM(playerid,"<ERROR> : Priority cannot go over 5 or below 0!");
+        		format(string,144,"<OBJECT> : "WHITE"Object "YELLOW"slot %d "WHITE"priority is set to "GREEN"%d "WHITE"from "RED"%d",slot,priority,DynamicObjectPriority[slot]);
         		DynamicObjectPriority[slot] = priority;
-        		SendClientMessage(playerid,X11_YELLOW,string);
+        		SendClientMessage(playerid,X11_LIGHTBLUE,string);
         	}
         }
         default:
         {
-            SEM(playerid,"KEGUNAAN: /object [option]");
-            SEM(playerid,"OPTIONS: create, remove, clear, copy, move, rotate, select, load, save, tele, mgethere, mmove");
-            SEM(playerid,"OPTIONS: export, model, attach, gethere, listmap, material, import, textprop, resetmaterial, deletemode, rdelete");
-            SEM(playerid,"OPTIONS: paintbrush, cleanbrush, priority");
+            SEM(playerid,"<SYNTAX> : /object [option]");
+            SEM(playerid,"<OPTIONS> : create, remove, clear, copy, move, rotate, select, tele, mgethere, mmove");
+            SEM(playerid,"<OPTIONS> : export, model, attach, gethere, material, import, textprop, resetmaterial, deletemode, rdelete");
+            SEM(playerid,"<OPTIONS> : paintbrush, cleanbrush, priority");
         }
     }
     return 1;
